@@ -67,6 +67,27 @@ An **anomaly detection approach** that:
 | **Fraud Rate** | 1.21% (7,200 fraudulent) |
 | **Type** | Synthetic, privacy-safe transactional data |
 | **Features** | Customer, merchant, amount, location, time, category |
+| **Download** | [Google Drive Link](https://drive.google.com/drive/folders/1YTfIuQHlQ5it9ZBUvTZ_gZMmOp-GI4vi?usp=sharing) |
+
+### Data Location
+
+**Note:** The `data/` folder is large and not included in this repository. Download it from the link above and place it in the project root:
+
+```bash
+# Download from Google Drive, then:
+cp -r ~/Downloads/data ./Real-World-Anomaly-Detection/
+```
+
+Expected structure after download:
+```
+data/
+├── raw/
+│   └── banksim.csv
+└── processed/
+    ├── banksim_feature_engineered.csv
+    ├── X_features.csv
+    └── y_labels.csv
+```
 
 ### Data Quality
 
@@ -74,6 +95,7 @@ An **anomaly detection approach** that:
 ✅ No duplicates  
 ✅ Balanced temporal distribution  
 ✅ Realistic fraud patterns
+
 
 ---
 
