@@ -1,0 +1,8 @@
+/docs
+docs
+.ipynb_checkpoints
+__pycache__
+*.pyc
+data/
+data/processed/*.csv
+data/raw/*.csv
