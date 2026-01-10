@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, constr, conint, confloat
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 
 class TransactionRequest(BaseModel):
@@ -29,4 +29,8 @@ class PredictionResponse(BaseModel):
     reasons: List[str] = Field(
         default_factory=list,
         description="Human-readable reasons contributing to the risk assessment",
+    )
+    data_quality_flag: Optional[str] = Field(
+        default=None,
+        description="Warning if customer/merchant not in training data (None = known, 'unseen_customer' = new customer, 'unseen_merchant' = new merchant)"
     )

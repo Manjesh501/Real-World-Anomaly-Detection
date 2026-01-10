@@ -165,15 +165,50 @@ def compute_features(
     le = artifacts.label_encoders
     agg = artifacts.aggregations
 
-    customer = str(raw["customer"])
+    # Normalize identifiers to match training artifacts (handle possible single quotes)
+    def _match_key(key: str, mapping: Dict[str, Any]) -> str:
+        if key in mapping:
+            return key
+        quoted = f"'{key}'"
+        if quoted in mapping:
+            return quoted
+        return key
+
+    def _match_pair_key(cust: str, merch: str, mapping: Dict[Tuple[str, str], Any]) -> Tuple[str, str]:
+        if (cust, merch) in mapping:
+            return cust, merch
+        quoted_pair = (f"'{cust}'", f"'{merch}'")
+        if quoted_pair in mapping:
+            return quoted_pair
+        return cust, merch
+
+    customer_raw = str(raw["customer"])
     age = str(raw["age"])
     gender = str(raw["gender"])
     zipcode_ori = str(raw["zipcodeOri"])
-    merchant = str(raw["merchant"])
+    merchant_raw = str(raw["merchant"])
     zip_merchant = str(raw["zipMerchant"])
-    category = str(raw["category"])
+    category_raw = str(raw["category"])
     amount = float(raw["amount"])
     step = int(raw["step"])
+
+    # Use keys that best match training mappings
+    customer = _match_key(customer_raw, agg.customer_txn_count)
+    merchant = _match_key(merchant_raw, agg.merchant_txn_count)
+    cust_key, merch_key_for_pair = _match_pair_key(customer, merchant, agg.cust_merchant_txn_count)
+
+    # For label encoders, try both raw and quoted values
+    def _norm_for_le(val: str, mapping: Dict[str, int]) -> str:
+        if val in mapping:
+            return val
+        quoted = f"'{val}'"
+        if quoted in mapping:
+            return quoted
+        return val
+
+    category = _norm_for_le(category_raw, le.category_mapping)
+    gender_val = _norm_for_le(gender, le.gender_mapping)
+    age_val = _norm_for_le(age, le.age_mapping)
 
     # --- Temporal features ---
     timestamp = START_TIME + timedelta(hours=step)
@@ -199,7 +234,7 @@ def compute_features(
 
     merchant_txn_count = agg.merchant_txn_count.get(merchant, 0)
     cust_merchant_txn_count = agg.cust_merchant_txn_count.get(
-        (customer, merchant), 1
+        (cust_key, merch_key_for_pair), 1
     )
 
     # For txn_count_last_24 we use median historical window per customer.
@@ -209,8 +244,8 @@ def compute_features(
 
     # --- Encoded categories ---
     category_enc = _encode_with_unknown(le.category_mapping, category)
-    gender_enc = _encode_with_unknown(le.gender_mapping, gender)
-    age_enc = _encode_with_unknown(le.age_mapping, age)
+    gender_enc = _encode_with_unknown(le.gender_mapping, gender_val)
+    age_enc = _encode_with_unknown(le.age_mapping, age_val)
 
     # --- Amount transformations ---
     amount_log = float(np.log1p(amount))

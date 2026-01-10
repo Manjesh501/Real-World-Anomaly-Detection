@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from typing import List
+from pathlib import Path
+import logging
+from logging.handlers import RotatingFileHandler
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +38,36 @@ app.add_middleware(
 # Global objects loaded once at startup and reused for all requests
 feature_artifacts = load_feature_engineering_artifacts()
 iso_model = load_isolation_forest_model()
+
+logger = logging.getLogger("fraud_api")
+logger.setLevel(logging.INFO)
+
+# File-based logging for predictions
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+log_file = LOG_DIR / "predictions.log"
+
+file_handler = RotatingFileHandler(log_file, maxBytes=1_000_000, backupCount=3)
+formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+logger.propagate = False
+
+
+def _seen_customer(customer_id: str) -> bool:
+    agg = feature_artifacts.aggregations
+    if customer_id in agg.customer_txn_count:
+        return True
+    quoted = f"'{customer_id}'"
+    return quoted in agg.customer_txn_count
+
+
+def _seen_merchant(merchant_id: str) -> bool:
+    agg = feature_artifacts.aggregations
+    if merchant_id in agg.merchant_txn_count:
+        return True
+    quoted = f"'{merchant_id}'"
+    return quoted in agg.merchant_txn_count
 
 
 def _risk_from_score(score: float) -> str:
@@ -159,9 +192,34 @@ async def predict_transaction(payload: TransactionRequest) -> PredictionResponse
     # 4) Explanation reasons
     reasons = _build_reasons(flags, risk_level, is_fraud)
 
+    # 5) Data quality check - warn if customer/merchant not in training data
+    data_quality_flag = None
+    if not _seen_customer(payload.customer):
+        data_quality_flag = "unseen_customer"
+        reasons.append("WARNING: Customer not in training data (using fallback values)")
+    if not _seen_merchant(payload.merchant):
+        if data_quality_flag:
+            data_quality_flag = "unseen_customer_and_merchant"
+        else:
+            data_quality_flag = "unseen_merchant"
+        reasons.append("WARNING: Merchant not in training data (using fallback values)")
+    
+    # Log prediction for monitoring
+    logger.info(
+        "prediction customer=%s merchant=%s amount=%.2f is_fraud=%s risk=%s score=%.4f dq=%s",
+        payload.customer,
+        payload.merchant,
+        payload.amount,
+        is_fraud,
+        risk_level,
+        fraud_score,
+        data_quality_flag,
+    )
+    
     return PredictionResponse(
         is_fraud=is_fraud,
         fraud_score=fraud_score,
         risk_level=risk_level,
         reasons=reasons,
+        data_quality_flag=data_quality_flag,
     )

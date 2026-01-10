@@ -1,0 +1,10 @@
+2026-01-10 14:28:24,264 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=35.00 is_fraud=False risk=LOW score=-0.0252 dq=unseen_customer_and_merchant
+2026-01-10 14:28:24,312 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=5000.00 is_fraud=True risk=HIGH score=0.0743 dq=unseen_customer_and_merchant
+2026-01-10 14:29:45,943 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=50.00 is_fraud=False risk=LOW score=-0.0180 dq=unseen_customer_and_merchant
+2026-01-10 14:31:00,387 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=50.00 is_fraud=False risk=LOW score=-0.0180 dq=unseen_customer_and_merchant
+2026-01-10 14:31:24,245 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=50.00 is_fraud=False risk=LOW score=-0.0180 dq=unseen_customer_and_merchant
+2026-01-10 14:34:48,981 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=35.00 is_fraud=False risk=LOW score=-0.1683 dq=None
+2026-01-10 14:34:49,024 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=5000.00 is_fraud=True risk=HIGH score=0.0202 dq=None
+2026-01-10 14:35:30,429 | INFO | fraud_api | prediction customer=C1093826151 merchant=M348934600 amount=50.00 is_fraud=False risk=LOW score=-0.1354 dq=None
+2026-01-10 14:35:42,920 | INFO | fraud_api | prediction customer=C1093826151 merchant=M48934600 amount=50.00 is_fraud=False risk=LOW score=-0.1116 dq=unseen_merchant
+2026-01-10 14:36:10,371 | INFO | fraud_api | prediction customer=C093826151 merchant=M48934600 amount=550.00 is_fraud=True risk=HIGH score=0.0563 dq=unseen_customer_and_merchant
